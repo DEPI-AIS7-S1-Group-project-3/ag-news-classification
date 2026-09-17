@@ -7,7 +7,12 @@ def fetch_ag_news_data(split: str = "train", limit: int = 100):
     dataset = load_dataset("fancyzhx/ag_news", split=split)
     df = pd.DataFrame(dataset)
 
-    label_mapping = {1: "World", 2: "Sports", 3: "Business", 4: "Sci/Tech"}
+    label_mapping = {
+        0: "World",
+        1: "Sports",
+        2: "Business",
+        3: "Sci/Tech",
+    }
     df["label_name"] = df["label"].map(label_mapping)
 
     if limit:
