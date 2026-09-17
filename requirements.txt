@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+pdfplumber
+pypdf
+python-multipart
+groq
+pydantic-settings
