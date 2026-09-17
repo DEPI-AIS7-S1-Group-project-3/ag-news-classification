@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from app.core.config import settings
+from app.api.routes_news import router as news_router
 
-app = FastAPI(title=settings.PROJECT_NAME)
+app = FastAPI(title="AG News Classification API")
+
+# Include News Classification Router
+app.include_router(news_router, prefix=settings.API_V1_STR, tags=["News Classification"])
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to Invoice Intelligence API", "status": "running"}
+    return {"message": "Welcome to AG News Classification API", "status": "running"}
