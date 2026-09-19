@@ -18,6 +18,10 @@ SYSTEM_PROMPT = (
     "# Output Format\n"
     "- Respond with a single valid JSON object and nothing else.\n"
     "- No markdown code fences, no explanations before or after the JSON."
+    "- If the article's main subject is a product, invention, research finding, or "
+    "technology itself, choose Sci/Tech even if it mentions revenue, sales, or stock price.\n"
+    "- Choose Business only when the article's main focus is financial performance, "
+    "markets, or corporate finance, with no technology product or research as the subject.\n"
 )
 
 

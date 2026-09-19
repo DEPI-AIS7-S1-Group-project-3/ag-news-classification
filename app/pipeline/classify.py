@@ -16,6 +16,8 @@ FEW_SHOTS = (
     '{"category": "Business", "confidence": 0.9, "reasoning": "Stock move and earnings forecast"}\n\n'
     'Article: "Researchers unveil a battery that charges a phone in five minutes."\n'
     '{"category": "Sci/Tech", "confidence": 0.9, "reasoning": "New technology research result"}\n\n'
+    'Article: "The chipmaker unveiled its new AI processor, sending shares up 12% in early trading."\n'
+    '{"category": "Sci/Tech", "confidence": 0.85, "reasoning": "Main subject is the new chip, stock move is secondary"}\n\n'
 )
 
 
