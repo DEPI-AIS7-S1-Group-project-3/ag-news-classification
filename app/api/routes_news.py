@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.schemas.news import NewsPredictionRequest, NewsPredictionResponse
+from app.services.run_pipeline import run_pipeline
 
 router = APIRouter()
 
@@ -11,5 +12,9 @@ def news_route_status():
 
 @router.post("/predict", response_model=NewsPredictionResponse)
 def predict_news_category(payload: NewsPredictionRequest):
-    # TODO: Integrate Groq API or HuggingFace Model Pipeline here
-    return NewsPredictionResponse(category="Sci/Tech", confidence=0.95)
+    result = run_pipeline(payload.text)
+    return NewsPredictionResponse(
+        category=result["category"],
+        confidence=result["confidence"],
+        used_fallback=result["used_fallback"],
+    )

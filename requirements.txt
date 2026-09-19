@@ -5,3 +5,5 @@ pydantic-settings
 pandas
 datasets
 pdfplumber
+groq
+tenacity
