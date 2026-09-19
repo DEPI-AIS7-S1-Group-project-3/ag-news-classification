@@ -1,4 +1,3 @@
-# app/core/logging.py
 import logging
 
 def setup_logging():

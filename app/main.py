@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from app.core.config import settings
 from app.api.routes_news import router as news_router
+from app.core.logging import setup_logging
+setup_logging()
 
 app = FastAPI(title="AG News Classification API")
 
