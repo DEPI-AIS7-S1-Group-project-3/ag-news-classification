@@ -2,18 +2,15 @@ import pandas as pd
 from datasets import load_dataset
 
 
-def fetch_ag_news_data(split: str = "train", limit: int = 100):
-    """Downloads AG News dataset from Hugging Face and returns it as a DataFrame."""
+def fetch_ag_news_data(split: str = "train", limit: int = 100, shuffle: bool = True, seed: int = 42):
     dataset = load_dataset("fancyzhx/ag_news", split=split)
     df = pd.DataFrame(dataset)
 
-    label_mapping = {
-        0: "World",
-        1: "Sports",
-        2: "Business",
-        3: "Sci/Tech",
-    }
+    label_mapping = {0: "World", 1: "Sports", 2: "Business", 3: "Sci/Tech"}
     df["label_name"] = df["label"].map(label_mapping)
+
+    if shuffle:
+        df = df.sample(frac=1, random_state=seed).reset_index(drop=True)
 
     if limit:
         df = df.head(limit)
