@@ -1,76 +1,74 @@
 /* ============================================================
    AG Wire — classification console
-   Theme: a physical dispatch console for a text-routing system.
-   Four fixed desks (World / Sports / Business / Sci-Tech) are
-   represented as indicator lamps; confidence is read off a
-   segmented signal meter, the way a level meter reads volume.
+   Dark dispatch-panel theme: indicator lamps light up per
+   category, confidence reads off a segmented signal meter.
+   Two-column layout on desktop so the console fills the window
+   instead of floating as a narrow strip.
    ============================================================ */
 
 :root {
-  --paper: #e7e4d8;
-  --panel: #ddd9c9;
-  --panel-deep: #d2cdb9;
-  --ink: #22221d;
-  --ink-soft: #635e4d;
-  --ink-faint: #8a836d;
-  --line: #c3bda6;
+  --bg: #14171c;
+  --panel: #1b1f26;
+  --panel-deep: #12151a;
+  --ink: #e8e6df;
+  --ink-soft: #9aa0ab;
+  --ink-faint: #5c6470;
+  --line: #2b3038;
 
-  --world: #2e5090;
-  --sports: #3b6b45;
-  --business: #ad7a22;
-  --scitech: #6a4e93;
-  --alert: #a6412e;
+  --world: #4f8fe8;
+  --sports: #4cc38a;
+  --business: #e8a33d;
+  --scitech: #b98af0;
+  --alert: #ef6461;
 
-  --radius: 3px;
+  --radius: 4px;
   --serif: 'Newsreader', Georgia, serif;
   --mono: 'IBM Plex Mono', 'Courier New', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    --paper: #1c1b17;
-    --panel: #26241d;
-    --panel-deep: #302d24;
-    --ink: #ece7d8;
-    --ink-soft: #b6ae97;
-    --ink-faint: #837b64;
-    --line: #45412f;
+    --bg: #eeece3;
+    --panel: #f8f6ee;
+    --panel-deep: #e4e1d3;
+    --ink: #1c1c18;
+    --ink-soft: #55523f;
+    --ink-faint: #8b8770;
+    --line: #d6d2bf;
 
-    --world: #7fa2e8;
-    --sports: #7cbf87;
-    --business: #e0a94f;
-    --scitech: #b49bdc;
-    --alert: #e08670;
+    --world: #2857a6;
+    --sports: #276b46;
+    --business: #986219;
+    --scitech: #6a3fa0;
+    --alert: #a6392a;
   }
 }
 
 * { box-sizing: border-box; }
 
-html { color-scheme: light dark; }
+html { color-scheme: dark light; }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--paper);
-  background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0);
-  background-size: 14px 14px;
+  background:
+    radial-gradient(1200px 500px at 15% -10%, rgba(79,143,232,0.08), transparent 60%),
+    radial-gradient(1000px 600px at 100% 0%, rgba(185,138,240,0.06), transparent 55%),
+    var(--bg);
   color: var(--ink);
   font-family: var(--serif);
-  display: flex;
-  justify-content: center;
-  padding: 56px 20px 90px;
+  padding: 44px 32px 70px;
 }
 
 .console {
   width: 100%;
-  max-width: 600px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 /* ---------- masthead ---------- */
 
-.masthead {
-  margin-bottom: 28px;
-}
+.masthead { margin-bottom: 28px; }
 
 .masthead-title {
   display: flex;
@@ -78,13 +76,10 @@ body {
   gap: 10px;
 }
 
-.masthead-icon {
-  font-size: 20px;
-  transform: translateY(1px);
-}
+.masthead-icon { font-size: 20px; transform: translateY(1px); }
 
 .masthead h1 {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0;
@@ -94,8 +89,27 @@ body {
   margin: 8px 0 0;
   color: var(--ink-soft);
   font-size: 15px;
-  max-width: 46ch;
+  max-width: 52ch;
   line-height: 1.5;
+}
+
+/* ---------- two-column grid ---------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 880px) {
+  .grid { grid-template-columns: 1fr; }
 }
 
 /* ---------- shared panel look ---------- */
@@ -104,15 +118,8 @@ body {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(0,0,0,0.04);
-  padding: 20px 22px;
-  margin-bottom: 16px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .panel {
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), inset 0 -1px 0 rgba(0,0,0,0.25);
-  }
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  padding: 22px 24px;
 }
 
 /* ---------- indicator lamps ---------- */
@@ -121,7 +128,7 @@ body {
   list-style: none;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  gap: 10px;
   margin: 0;
   padding: 0;
 }
@@ -130,8 +137,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 10px 4px 6px;
+  gap: 9px;
+  padding: 14px 4px 10px;
   border-radius: var(--radius);
   background: var(--panel-deep);
   border: 1px solid var(--line);
@@ -139,12 +146,12 @@ body {
 }
 
 .bulb {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: var(--ink-faint);
-  opacity: 0.35;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,0.25);
+  opacity: 0.4;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
   transition: background 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -160,13 +167,13 @@ body {
 .lamp.active .lamp-label { color: var(--ink); font-weight: 600; }
 
 .lamp[data-desk="World"].active { color: var(--world); }
-.lamp[data-desk="World"].active .bulb { background: var(--world); box-shadow: 0 0 8px var(--world); }
+.lamp[data-desk="World"].active .bulb { background: var(--world); box-shadow: 0 0 10px var(--world); }
 .lamp[data-desk="Sports"].active { color: var(--sports); }
-.lamp[data-desk="Sports"].active .bulb { background: var(--sports); box-shadow: 0 0 8px var(--sports); }
+.lamp[data-desk="Sports"].active .bulb { background: var(--sports); box-shadow: 0 0 10px var(--sports); }
 .lamp[data-desk="Business"].active { color: var(--business); }
-.lamp[data-desk="Business"].active .bulb { background: var(--business); box-shadow: 0 0 8px var(--business); }
+.lamp[data-desk="Business"].active .bulb { background: var(--business); box-shadow: 0 0 10px var(--business); }
 .lamp[data-desk="Sci/Tech"].active { color: var(--scitech); }
-.lamp[data-desk="Sci/Tech"].active .bulb { background: var(--scitech); box-shadow: 0 0 8px var(--scitech); }
+.lamp[data-desk="Sci/Tech"].active .bulb { background: var(--scitech); box-shadow: 0 0 10px var(--scitech); }
 
 /* ---------- input panel ---------- */
 
@@ -180,18 +187,17 @@ body {
 
 textarea {
   width: 100%;
-  min-height: 116px;
+  min-height: 220px;
   resize: vertical;
-  background: var(--paper);
+  background: var(--panel-deep);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 16px;
   font-family: var(--serif);
-  font-size: 16px;
+  font-size: 16.5px;
   line-height: 1.55;
   color: var(--ink);
   outline: none;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
 }
 
 textarea:focus { border-color: var(--ink-soft); }
@@ -201,7 +207,7 @@ textarea::placeholder { color: var(--ink-faint); font-style: italic; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 .counter {
@@ -215,20 +221,16 @@ button {
   font-size: 13px;
   font-weight: 600;
   background: var(--ink);
-  color: var(--paper);
+  color: var(--bg);
   border: none;
-  padding: 10px 20px;
+  padding: 11px 22px;
   border-radius: var(--radius);
   cursor: pointer;
-  box-shadow: 0 2px 0 rgba(0,0,0,0.25);
-  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.15s ease;
+  transition: transform 0.08s ease, opacity 0.15s ease;
 }
 
-button:hover:not(:disabled) { opacity: 0.92; }
-button:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 0 0 rgba(0,0,0,0.25);
-}
+button:hover:not(:disabled) { opacity: 0.88; }
+button:active:not(:disabled) { transform: translateY(1px); }
 button:disabled { opacity: 0.4; cursor: default; }
 button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
 
@@ -237,29 +239,23 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
 .error {
   display: none;
   border: 1px solid var(--alert);
-  background: color-mix(in srgb, var(--alert) 10%, transparent);
+  background: color-mix(in srgb, var(--alert) 12%, transparent);
   color: var(--alert);
   padding: 12px 16px;
   border-radius: var(--radius);
   font-family: var(--mono);
   font-size: 12.5px;
-  margin: 0 0 16px;
+  margin: 0;
 }
 .error.show { display: block; }
 
 /* ---------- readout ---------- */
 
-.readout {
-  display: none;
-}
-.readout.show {
-  display: block;
-  animation: settle 0.3s ease;
-}
+.readout.pulse { animation: settle 0.3s ease; }
 
 @keyframes settle {
-  from { opacity: 0; transform: translateY(3px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0.4; }
+  to { opacity: 1; }
 }
 
 .readout-top {
@@ -282,10 +278,11 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
 }
 
 .readout-category {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 600;
-  margin: 2px 0 18px;
+  margin: 2px 0 20px;
 }
+.readout-category.idle { color: var(--ink-faint); font-style: italic; font-weight: 500; font-size: 22px; }
 .readout-category[data-cat="World"] { color: var(--world); }
 .readout-category[data-cat="Sports"] { color: var(--sports); }
 .readout-category[data-cat="Business"] { color: var(--business); }
@@ -295,7 +292,7 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .signal-label {
@@ -313,7 +310,7 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
 
 .signal-meter span {
   flex: 1;
-  height: 10px;
+  height: 11px;
   background: var(--panel-deep);
   border: 1px solid var(--line);
   border-radius: 1px;
@@ -328,7 +325,7 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
   font-family: var(--mono);
   font-size: 12px;
   color: var(--ink-soft);
-  min-width: 36px;
+  min-width: 32px;
   text-align: right;
   flex-shrink: 0;
 }
@@ -343,20 +340,13 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
 
 /* ---------- log ---------- */
 
-.log {
-  display: none;
-  margin-top: 32px;
-}
-.log.show { display: block; }
-
 .log h2 {
   font-family: var(--mono);
   font-size: 11px;
   font-weight: 500;
   color: var(--ink-soft);
-  text-transform: none;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   margin: 0 0 4px;
 }
 
@@ -366,14 +356,26 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
   padding: 0;
 }
 
+.log-empty {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-style: italic;
+  padding: 12px 0 2px;
+  margin: 0;
+}
+
+.log ol:not(:empty) + .log-empty { display: none; }
+
 .log li {
   display: flex;
   align-items: baseline;
   gap: 14px;
-  padding: 10px 0;
+  padding: 11px 0;
   border-bottom: 1px solid var(--line);
   font-size: 14.5px;
 }
+.log li:last-child { border-bottom: none; }
 
 .log li .l-cat {
   font-family: var(--mono);
@@ -405,7 +407,7 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
 /* ---------- footer config ---------- */
 
 .config {
-  margin-top: 40px;
+  margin-top: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -422,7 +424,7 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
   border: none;
   border-bottom: 1px dotted var(--line);
   color: var(--ink-soft);
-  width: 230px;
+  width: 240px;
   padding: 2px 0;
 }
 .config input:focus { outline: none; border-bottom-color: var(--ink-soft); }
@@ -430,15 +432,16 @@ button:focus-visible { outline: 2px solid var(--world); outline-offset: 2px; }
 /* ---------- responsive ---------- */
 
 @media (max-width: 480px) {
-  body { padding: 32px 14px 60px; }
+  body { padding: 28px 16px 50px; }
   .lamps { grid-template-columns: repeat(2, 1fr); }
   .masthead h1 { font-size: 26px; }
   .readout-category { font-size: 24px; }
+  textarea { min-height: 160px; }
 }
 
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .readout.show { animation: none; }
+  .readout.pulse { animation: none; }
   * { transition-duration: 0.01ms !important; }
 }

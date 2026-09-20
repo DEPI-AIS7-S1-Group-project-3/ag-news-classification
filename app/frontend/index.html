@@ -22,58 +22,65 @@
       <p class="masthead-sub">A console for testing where the model routes a piece of text.</p>
     </header>
 
-    <section class="panel" aria-label="Routing desks">
-      <ul class="lamps" id="lamps">
-        <li class="lamp" data-desk="World">
-          <span class="bulb"></span>
-          <span class="lamp-label">World</span>
-        </li>
-        <li class="lamp" data-desk="Sports">
-          <span class="bulb"></span>
-          <span class="lamp-label">Sports</span>
-        </li>
-        <li class="lamp" data-desk="Business">
-          <span class="bulb"></span>
-          <span class="lamp-label">Business</span>
-        </li>
-        <li class="lamp" data-desk="Sci/Tech">
-          <span class="bulb"></span>
-          <span class="lamp-label">Sci/Tech</span>
-        </li>
-      </ul>
-    </section>
+    <div class="grid">
+      <div class="col">
+        <section class="panel" aria-label="Routing desks">
+          <ul class="lamps" id="lamps">
+            <li class="lamp" data-desk="World">
+              <span class="bulb"></span>
+              <span class="lamp-label">World</span>
+            </li>
+            <li class="lamp" data-desk="Sports">
+              <span class="bulb"></span>
+              <span class="lamp-label">Sports</span>
+            </li>
+            <li class="lamp" data-desk="Business">
+              <span class="bulb"></span>
+              <span class="lamp-label">Business</span>
+            </li>
+            <li class="lamp" data-desk="Sci/Tech">
+              <span class="bulb"></span>
+              <span class="lamp-label">Sci/Tech</span>
+            </li>
+          </ul>
+        </section>
 
-    <section class="panel input-panel">
-      <label for="text">Text to classify</label>
-      <textarea id="text" placeholder="Paste a headline or article, e.g. “Apple reveals new M-series chips in latest event.”"></textarea>
-      <div class="input-row">
-        <span class="counter" id="counter">0 characters</span>
-        <button id="send" type="button">Classify</button>
-      </div>
-    </section>
+        <section class="panel input-panel">
+          <label for="text">Text to classify</label>
+          <textarea id="text" placeholder="Paste a headline or article, e.g. “Apple reveals new M-series chips in latest event.”"></textarea>
+          <div class="input-row">
+            <span class="counter" id="counter">0 characters</span>
+            <button id="send" type="button">Classify</button>
+          </div>
+        </section>
 
-    <p class="error" id="error" role="alert"></p>
-
-    <section class="panel readout" id="result" aria-live="polite">
-      <div class="readout-top">
-        <span class="readout-label">Category</span>
-        <span class="readout-time" id="timing"></span>
-      </div>
-      <p class="readout-category" id="category">—</p>
-
-      <div class="signal">
-        <span class="signal-label">Signal</span>
-        <div class="signal-meter" id="signalMeter"></div>
-        <span class="signal-value" id="signalValue">0%</span>
+        <p class="error" id="error" role="alert"></p>
       </div>
 
-      <p class="readout-flag" id="flag"></p>
-    </section>
+      <div class="col">
+        <section class="panel readout" id="result" aria-live="polite">
+          <div class="readout-top">
+            <span class="readout-label">Category</span>
+            <span class="readout-time" id="timing"></span>
+          </div>
+          <p class="readout-category idle" id="category">Awaiting input</p>
 
-    <section class="log" id="log">
-      <h2>Recent dispatches</h2>
-      <ol id="logItems"></ol>
-    </section>
+          <div class="signal">
+            <span class="signal-label">Signal</span>
+            <div class="signal-meter" id="signalMeter"></div>
+            <span class="signal-value" id="signalValue">—</span>
+          </div>
+
+          <p class="readout-flag" id="flag">Nothing classified yet.</p>
+        </section>
+
+        <section class="panel log" id="log">
+          <h2>Recent dispatches</h2>
+          <ol id="logItems"></ol>
+          <p class="log-empty" id="logEmpty">Nothing sent yet — dispatches will appear here.</p>
+        </section>
+      </div>
+    </div>
 
     <footer class="config">
       <label for="apiUrl">API endpoint</label>

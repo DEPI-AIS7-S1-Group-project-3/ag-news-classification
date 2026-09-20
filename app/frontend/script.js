@@ -23,7 +23,6 @@ const els = {
   timing: document.getElementById('timing'),
   lamps: document.getElementById('lamps'),
   apiUrl: document.getElementById('apiUrl'),
-  log: document.getElementById('log'),
   logItems: document.getElementById('logItems'),
 };
 
@@ -71,7 +70,6 @@ function addToLog(text, category, confidence) {
   history.unshift({ text, category, confidence });
   if (history.length > 5) history.pop();
 
-  els.log.classList.add('show');
   els.logItems.innerHTML = history.map((h) => `
     <li>
       <span class="l-cat ${SLUG[h.category]}">${h.category}</span>
@@ -97,7 +95,6 @@ async function classify() {
   els.send.disabled = true;
   els.send.textContent = 'Routing…';
   els.error.classList.remove('show');
-  els.result.classList.remove('show');
 
   const started = performance.now();
 
@@ -119,6 +116,7 @@ async function classify() {
 
     els.category.textContent = data.category;
     els.category.dataset.cat = data.category;
+    els.category.classList.remove('idle');
     setMeter(confidence, data.category);
     setLamp(data.category);
 
@@ -128,7 +126,10 @@ async function classify() {
     els.flag.classList.toggle('fallback', Boolean(data.used_fallback));
 
     els.timing.textContent = `${elapsed}s`;
-    els.result.classList.add('show');
+    els.result.classList.remove('pulse');
+    void els.result.offsetWidth; // restart the animation on repeat classifications
+    els.result.classList.add('pulse');
+
     addToLog(text, data.category, confidence);
 
   } catch (err) {
