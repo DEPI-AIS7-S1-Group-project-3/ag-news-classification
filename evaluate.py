@@ -14,10 +14,10 @@ import csv
 import time
 
 from app.ingestion.load_data import fetch_ag_news_data
-from app.services.run_pipeline import run_pipeline
+from app.services.run_pipeline import run_pipeline_batch
 
 
-def evaluate(limit: int, split: str, out_path: str | None, delay: float):
+def evaluate(limit: int, split: str, out_path: str | None, delay: float, batch_size: int):
     print(f"Loading {limit} samples from AG News ({split} split)...")
     df = fetch_ag_news_data(split=split, limit=limit)
 
@@ -28,12 +28,12 @@ def evaluate(limit: int, split: str, out_path: str | None, delay: float):
     rows = []
 
     start = time.perf_counter()
+    texts = df["text"].tolist()
+    results = run_pipeline_batch(texts, batch_size=batch_size, delay_seconds=delay)
 
-    for i, row in df.iterrows():
+    for i, (row, result) in enumerate(zip(df.to_dict("records"), results), start=1):
         text = row["text"]
         true_label = row["label_name"]
-
-        result = run_pipeline(text)
         predicted = result["category"]
 
         is_correct = predicted == true_label
@@ -54,13 +54,8 @@ def evaluate(limit: int, split: str, out_path: str | None, delay: float):
 
         status = "OK" if is_correct else "WRONG"
         fb = " [FALLBACK]" if result["used_fallback"] else ""
-        print(f"[{i + 1}/{total}] {status}{fb} | true={true_label} pred={predicted} "
+        print(f"[{i}/{total}] {status}{fb} | true={true_label} pred={predicted} "
               f"conf={result['confidence']}")
-
-        # Throttle: stay comfortably under Groq's free-tier tokens-per-minute limit,
-        # instead of firing requests back-to-back and burning retries on 429s.
-        if delay > 0 and i < total - 1:
-            time.sleep(delay)
 
     elapsed = time.perf_counter() - start
 
@@ -88,9 +83,10 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=100, help="Number of samples to evaluate")
     parser.add_argument("--split", type=str, default="test", help="Dataset split (train/test)")
     parser.add_argument("--out", type=str, default="eval_results.csv", help="CSV output path")
-    parser.add_argument("--delay", type=float, default=5.0,
-                         help="Seconds to wait between requests (avoids Groq free-tier "
-                              "rate limits). Set to 0 to disable.")
+    parser.add_argument("--delay", type=float, default=2.0,
+                         help="Seconds to wait between each batch to reduce Groq rate-limit pressure.")
+    parser.add_argument("--batch-size", type=int, default=2,
+                         help="Number of texts to process per batch before pausing.")
     args = parser.parse_args()
 
-    evaluate(limit=args.limit, split=args.split, out_path=args.out, delay=args.delay)
+    evaluate(limit=args.limit, split=args.split, out_path=args.out, delay=args.delay, batch_size=args.batch_size)

@@ -1,4 +1,5 @@
 from enum import Enum
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -18,3 +19,7 @@ class NewsClassification(BaseModel):
     @classmethod
     def trim_reasoning(cls, v):
         return v[:200]
+
+    @property
+    def category_value(self) -> str:
+        return self.category.value
