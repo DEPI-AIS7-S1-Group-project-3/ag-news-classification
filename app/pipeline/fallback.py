@@ -1,82 +1,117 @@
+import json
 import logging
-import re
+
+from pydantic import ValidationError
 
 from app.pipeline.errors import PipelineError
 from app.pipeline.retry import classify_with_retry
-from app.schemas.classification import NewsCategory, NewsClassification
+from app.pipeline.openai_client import call_openai
+from app.pipeline.classify import build_classification_prompt
+from app.schemas.classification import NewsClassification
 
 logger = logging.getLogger(__name__)
 
-# A tiny keyword scorer used ONLY when Groq keeps failing. It needs no model, no internet
-# and no extra libraries, so it can't fail the same way Groq did.
-KEYWORDS = {
-    NewsCategory.SPORTS: {"game", "team", "season", "coach", "league", "cup", "match", "player",
-                          "win", "won", "score", "champion", "tournament", "olympic"},
-    NewsCategory.BUSINESS: {"stock", "shares", "market", "profit", "company", "bank", "economy",
-                            "oil", "price", "sales", "earnings", "investor", "billion", "revenue"},
-    NewsCategory.SCI_TECH: {"software", "internet", "computer", "research", "scientist", "space",
-                            "technology", "chip", "microsoft", "google", "apple", "online", "nasa",
-                            "ai", "startup", "launch", "battery", "semiconductor", "cybersecurity"},
-    NewsCategory.WORLD: {"president", "government", "minister", "war", "iraq", "election",
-                         "police", "military", "un", "troops", "talks", "attack", "policy"},
-}
 
+def classify_with_openai(text: str) -> NewsClassification:
+    """
+    Fallback classification using OpenAI.
 
-def keyword_scores(text: str) -> dict[NewsCategory, int]:
-    words = set(re.findall(r"[a-z]+", text.lower()))
-    return {cat: len(words & kws) for cat, kws in KEYWORDS.items()}
+    This function performs one OpenAI attempt.
+    Retry logic is handled separately.
+    """
 
+    prompt = build_classification_prompt(text)
 
-def keyword_fallback(text: str) -> NewsClassification:
-    scores = keyword_scores(text)
-    best = max(scores, key=scores.get)
-    if scores[best] == 0:
-        return NewsClassification(category=NewsCategory.WORLD, confidence=0.0,
-                                  reasoning="fallback: no keyword matched")
-    return NewsClassification(category=best, confidence=0.3,
-                              reasoning=f"fallback: {scores[best]} keyword match(es)")
+    try:
+        raw = call_openai(prompt)
 
+        # Remove markdown code fences if the model returns them.
+        if raw.startswith("```"):
+            raw = raw.strip("`").strip()
 
-def _guard_against_common_mistakes(text: str, result: NewsCategory) -> NewsCategory:
-    scores = keyword_scores(text)
+            if raw.startswith("json"):
+                raw = raw.removeprefix("json").strip()
 
-    if result == NewsCategory.BUSINESS:
-        if scores[NewsCategory.SCI_TECH] >= scores[NewsCategory.BUSINESS] + 2 and scores[NewsCategory.SCI_TECH] >= 2:
-            return NewsCategory.SCI_TECH
-        if scores[NewsCategory.WORLD] >= scores[NewsCategory.BUSINESS] + 2 and scores[NewsCategory.WORLD] >= 2:
-            return NewsCategory.WORLD
+        payload = json.loads(raw)
 
-    if result == NewsCategory.SCI_TECH:
-        if scores[NewsCategory.BUSINESS] >= scores[NewsCategory.SCI_TECH] + 2 and scores[NewsCategory.BUSINESS] >= 2:
-            return NewsCategory.BUSINESS
+        if not isinstance(payload, dict):
+            raise TypeError(
+                f"expected a dict payload, got {type(payload).__name__}"
+            )
 
-    if result == NewsCategory.WORLD:
-        if scores[NewsCategory.BUSINESS] >= scores[NewsCategory.WORLD] + 2 and scores[NewsCategory.BUSINESS] >= 2:
-            return NewsCategory.BUSINESS
-        if scores[NewsCategory.SPORTS] >= scores[NewsCategory.WORLD] + 2 and scores[NewsCategory.SPORTS] >= 2:
-            return NewsCategory.SPORTS
+        return NewsClassification(**payload)
 
-    return result
+    except (json.JSONDecodeError, ValidationError, TypeError) as e:
+        raise PipelineError(
+            f"invalid OpenAI fallback response: {e}"
+        ) from e
+
+    except Exception as e:
+        raise PipelineError(
+            f"OpenAI fallback call failed: {e!r}"
+        ) from e
 
 
 def safe_classify(text: str) -> tuple[NewsClassification, bool]:
-    """Returns (result, used_fallback). Never raises PipelineError."""
+    """
+    Primary → fallback classification strategy.
+
+    1. Try Groq with the existing retry mechanism.
+    2. If Groq completely fails, try OpenAI.
+    3. If OpenAI also fails, raise PipelineError.
+
+    Returns:
+        (classification_result, used_fallback)
+    """
+
+    # --------------------------------------------------
+    # 1. PRIMARY PROVIDER: GROQ
+    # --------------------------------------------------
     try:
-        predicted = classify_with_retry(text)
-        corrected_category = _guard_against_common_mistakes(text, predicted.category)
-        if corrected_category != predicted.category:
-            corrected = NewsClassification(
-                category=corrected_category,
-                confidence=0.8,
-                reasoning="guardrail: keyword override"
-            )
-            return corrected, True
-        return predicted, False
-    except PipelineError as e:
-        logger.warning("fallback triggered after retries: %s", e)
-        return keyword_fallback(text), True
+        result = classify_with_retry(text)
+
+        logger.info(
+            "classification succeeded using Groq | category=%s",
+            result.category.value,
+        )
+
+        return result, False
+
+    except PipelineError as groq_error:
+        logger.warning(
+            "Groq failed after retries. Switching to OpenAI fallback: %s",
+            groq_error,
+        )
+
+    # --------------------------------------------------
+    # 2. FALLBACK PROVIDER: OPENAI
+    # --------------------------------------------------
+    try:
+        result = classify_with_openai(text)
+
+        logger.info(
+            "classification succeeded using OpenAI fallback | category=%s",
+            result.category.value,
+        )
+
+        return result, True
+
+    except PipelineError as openai_error:
+        logger.error(
+            "Both Groq and OpenAI failed. Groq fallback chain exhausted: %s",
+            openai_error,
+        )
+
+        raise PipelineError(
+            "Classification failed: both Groq and OpenAI providers failed."
+        ) from openai_error
 
 
-def safe_pipeline(text: str) -> tuple[NewsClassification, bool]:
-    """Notebook-style compatibility wrapper matching the app's no-crash contract."""
+def safe_pipeline(
+    text: str,
+) -> tuple[NewsClassification, bool]:
+    """
+    Compatibility wrapper used by the application.
+    """
+
     return safe_classify(text)

@@ -6,6 +6,7 @@ pandas
 datasets
 pdfplumber
 groq
+openai
 tenacity
 python-dotenv
 pytest
