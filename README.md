@@ -88,10 +88,12 @@ Without Compose:
 
 ```bash
 docker build -t ag-news-api .
-docker run --rm -d --name ag-news-api -p 8123:8000 --env-file .env ag-news-api
+docker run --rm -d --name ag-news-api -p 8001:8001 --env-file .env ag-news-api
 ```
 
-Either way, the dashboard and API are at http://localhost:8123. The container listens on port 8000 internally and is mapped to 8123 on your machine.
+Either way, the dashboard and API are at http://localhost:8001. The container listens on port 8001 internally, matching `docker-compose.yml`.
+
+Note this is a different port from `python run.py serve` (which defaults to 8000) so a local dev server and a running container don't collide. If you test the frontend against Docker, update the "API endpoint" field on the dashboard to `http://localhost:8001/api/v1/predict`.
 
 ## Project structure
 

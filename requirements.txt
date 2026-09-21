@@ -7,3 +7,6 @@ datasets
 pdfplumber
 groq
 tenacity
+python-dotenv
+pytest
+google-genai

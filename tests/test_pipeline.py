@@ -19,7 +19,7 @@ def test_validate_classification_accepts_valid_payload():
 
 def test_classify_news_wraps_invalid_model_output_as_pipeline_error(monkeypatch):
     monkeypatch.setattr(
-        "app.pipeline.classify.call_groq",
+        "app.pipeline.classify.call_llm",
         lambda _prompt: '{"category": "Unknown", "confidence": 1.5, "reasoning": "bad"}',
     )
 

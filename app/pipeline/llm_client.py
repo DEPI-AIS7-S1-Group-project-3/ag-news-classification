@@ -36,7 +36,8 @@ def call_llm(user_prompt: str, system_prompt: str = SYSTEM_PROMPT,
             {"role": "user", "content": user_prompt},
         ],
         temperature=temperature,
-        max_tokens=250,
+        max_tokens=600,          # كان 250
+        reasoning_effort="low",
     )
     logger.info(
         "llm call ok | model=%s | %.2fs",
