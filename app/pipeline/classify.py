@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 from app.core.config import settings
 from app.pipeline.errors import PipelineError
-from app.pipeline.groq_client import call_groq
+from app.pipeline.llm_client import call_llm
 from app.schemas.classification import NewsCategory, NewsClassification
 
 
@@ -16,33 +16,33 @@ def validate_classification(payload: dict) -> NewsClassification:
 
 CATEGORIES = [c.value for c in NewsCategory]
 
-# Two short examples for the two categories models mix up the most.
+# Minimized few-shot examples to save Tokens Per Minute
 FEW_SHOTS = (
     "Examples:\n\n"
     'Article: "Shares of the chipmaker jumped 8% after it raised its full-year revenue forecast."\n'
-    '{"category": "Business", "confidence": 0.9, "reasoning": "Stock move and earnings forecast"}\n\n'
-    'Article: "Researchers unveil a battery that charges a phone in five minutes."\n'
-    '{"category": "Sci/Tech", "confidence": 0.9, "reasoning": "New technology research result"}\n\n'
-    'Article: "The chipmaker unveiled its new AI processor, sending shares up 12% in early trading."\n'
-    '{"category": "Sci/Tech", "confidence": 0.85, "reasoning": "Main subject is the new chip, stock move is secondary"}\n\n'
+    '{"category": "Business", "confidence": 0.95, "reasoning": "Stock move and earnings forecast"}\n\n'
+    'Article: "The United Nations Security Council convened today to vote on the new peace resolution."\n'
+    '{"category": "World", "confidence": 0.98, "reasoning": "International government/diplomacy"}\n\n'
 )
 
 
 def build_classification_prompt(text: str) -> str:
     return (
-        "Classify this news article into exactly one of these categories: "
+        "You are an expert news desk editor. Classify this news snippet into EXACTLY ONE of these categories: "
         f"{CATEGORIES}.\n\n"
-        "Use these strict rules:\n"
-        "- Business: earnings, stocks, markets, mergers, bank/finance, inflation, revenue, corporate performance.\n"
-        "- World: politics, government, diplomacy, war, conflict, sanctions, elections, public policy.\n"
-        "- Sports: games, teams, scores, leagues, players, tournaments, transfers, championships.\n"
-        "- Sci/Tech: AI, software, chips, cybersecurity, biotech, research, space, internet, startups, product launches.\n"
-        "If the article is mainly about stock prices or company finances, choose Business. "
-        "If the article is mainly about a product, research breakthrough, AI, chips, software, or tech launch, choose Sci/Tech.\n"
-        "Never choose a category just because the headline mentions money or a tech company; use the main subject of the story.\n\n"
-        "Respond as valid JSON only, with this exact shape: "
-        '{"category": "<one of the categories>", "confidence": <float 0-1>, "reasoning": "<max 15 words>"}.\n\n'
-        f"{FEW_SHOTS}"
+        "Strict Classification Guidelines:\n"
+        "- Business: Use for ANY mention of stocks, earnings, corporate mergers, oil/gas prices, banks, or broad economy.\n"
+        "- World: Use for international politics, elections, government actions, diplomacy, police/military, and foreign affairs.\n"
+        "- Sports: Use for athletic events, game scores, team news, Olympics, and player transfers.\n"
+        "- Sci/Tech: Use for scientific discoveries, space exploration, new software/hardware, internet, and AI.\n\n"
+        "Ambiguity Rules:\n"
+        "1. If an article is about a tech company (like Microsoft) but focuses on their stock price or a lawsuit, it is 'Business'.\n"
+        "2. If an article is about a political figure but heavily focuses on the stock market impact, tip towards 'Business'.\n"
+        "3. Focus on the core 'event' of the text, not just the names mentioned.\n\n"
+        f"{FEW_SHOTS}\n\n"
+        "Now, perform the classification for the following article. Respond with a single valid JSON object containing exactly the three fields: 'category', 'confidence', and 'reasoning'. Do NOT provide any additional text or examples.\n"
+        "Respond as valid JSON only, using exactly this format: "
+        '{"category": "category_name", "confidence": 0.99, "reasoning": "rationale"}\n\n'
         'Article:\n"""\n'
         f"{text[:settings.MAX_INPUT_CHARS]}\n"
         '"""'
@@ -60,12 +60,24 @@ def classify_news(text: str) -> NewsClassification:
     """One attempt: prompt -> Groq -> parse JSON -> validate. Any failure becomes PipelineError."""
     prompt = build_classification_prompt(text)
     try:
-        raw = call_groq(prompt)
+        raw = call_llm(prompt)
+        # Strip markdown fences in case the Groq model returns ```json ... ```
+        if raw.startswith("```"):
+            raw = raw.strip("`").strip().removeprefix("json").strip()
+            
         payload = json.loads(raw)
         return validate_classification(payload)
-    except (json.JSONDecodeError, ValidationError, TypeError) as e:
-        # The model answered, but the answer is unusable (bad JSON / unknown category / confidence 1.5)
+    except (json.JSONDecodeError, ValidationError) as e:
+        # If the generated string was cut off but has a category, try regex
+        import re
+        match = re.search(r'"category"\s*:\s*"([^"]+)"', raw)
+        if match and match.group(1) in CATEGORIES:
+            return NewsClassification(
+                category=match.group(1),
+                confidence=0.5,
+                reasoning=f"Regex fallback due to JSON error"
+            )
         raise PipelineError(f"invalid model reply: {e}") from e
     except Exception as e:
-        # Groq itself failed (rate limit, timeout, no network, missing key...)
-        raise PipelineError(f"groq call failed: {e!r}") from e
+        # LLM itself failed (rate limit, timeout, no network, missing key...)
+        raise PipelineError(f"llm call failed: {e!r}") from e

@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AG Wire — Classification Console</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📡</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AG Wire — Classification Console</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
 
   <main class="console">
@@ -47,7 +52,8 @@
 
         <section class="panel input-panel">
           <label for="text">Text to classify</label>
-          <textarea id="text" placeholder="Paste a headline or article, e.g. “Apple reveals new M-series chips in latest event.”"></textarea>
+          <textarea id="text"
+            placeholder="Paste a headline or article, e.g. “Apple reveals new M-series chips in latest event.”"></textarea>
           <div class="input-row">
             <span class="counter" id="counter">0 characters</span>
             <button id="send" type="button">Classify</button>
@@ -84,11 +90,12 @@
 
     <footer class="config">
       <label for="apiUrl">API endpoint</label>
-      <input id="apiUrl" type="text" value="http://localhost:8123/api/v1/predict" spellcheck="false">
+      <input id="apiUrl" type="text" value="http://localhost:8000/api/v1/predict" spellcheck="false">
     </footer>
 
   </main>
 
-<script src="script.js"></script>
+  <script src="/static/script.js"></script>
 </body>
+
 </html>

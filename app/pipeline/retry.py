@@ -4,8 +4,10 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 from app.core.config import settings
 from app.pipeline.classify import classify_news
+from app.pipeline.extract import extract_news
 from app.pipeline.errors import PipelineError
 from app.schemas.classification import NewsClassification
+from app.schemas.extraction import NewsExtraction
 
 logger = logging.getLogger(__name__)
 
@@ -27,3 +29,13 @@ def _log_retry(retry_state):
 )
 def classify_with_retry(text: str) -> NewsClassification:
     return classify_news(text)
+
+@retry(
+    stop=stop_after_attempt(settings.RETRY_ATTEMPTS),         # e.g. 3 tries in total
+    wait=wait_exponential(multiplier=1, min=1, max=8),        # wait ~1s, then ~2s, then ~4s (max 8s)
+    retry=retry_if_exception_type(PipelineError),             # only retry OUR error type
+    reraise=True,                                             # after the last try, raise the real error
+    before_sleep=_log_retry,
+)
+def extract_with_retry(text: str) -> NewsExtraction:
+    return extract_news(text)
