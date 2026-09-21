@@ -1,7 +1,8 @@
 import logging
 import time
 
-from app.pipeline.fallback import keyword_fallback, safe_classify
+from app.pipeline.fallback import safe_classify
+from app.schemas.classification import NewsClassification, NewsCategory
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +20,13 @@ def run_pipeline(text: str) -> dict:
     cleaned = clean_text(text)
 
     if not cleaned:
-        # Nothing to classify: don't waste a Groq call on it.
-        result, used_fallback = keyword_fallback(""), True
+        # Nothing to classify: don't waste a Groq/OpenAI call.
+        result = NewsClassification(
+            category=NewsCategory.WORLD,
+            confidence=0.0,
+            reasoning="No text was provided for classification.",
+        )
+        used_fallback = True
     else:
         result, used_fallback = safe_classify(cleaned)
 
