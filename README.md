@@ -13,6 +13,29 @@ LLMs sometimes return malformed JSON or hit rate limits, so the pipeline is buil
 - **Failure handling.** Retries with exponential backoff (`tenacity`), configurable delays between requests for rate-limited tiers, and regex recovery for broken JSON output.
 - **Two providers.** Works with Groq and Gemini models. Groq is the default because it is faster.
 
+## Results
+
+Evaluated on 200 samples from the official AG News **test** split (`python run.py evaluate --limit 200`), sampled with a fixed shuffle seed so the run is reproducible and balanced across categories.
+
+| Metric | Value |
+|---|---|
+| Overall accuracy | **174/200 = 87.0%** |
+| Fallback rate (keyword fallback used) | 3/200 = 1.5% |
+| Avg. time per sample | 9.93s |
+
+**Accuracy by category:**
+
+| Category | Accuracy | Errors |
+|---|---|---|
+| Sports | 56/58 = 96.6% | 2 |
+| World | 39/43 = 90.7% | 4 |
+| Business | 40/48 = 83.3% | 8 |
+| Sci/Tech | 39/51 = 76.5% | 12 |
+
+**Known limitation:** Sci/Tech accounts for roughly half of all misclassifications, mostly confused with Business (7 cases) and, to a lesser extent, World (5 cases). This persisted across several rounds of prompt tuning (few-shot examples, explicit disambiguation rules, and a keyword-based guardrail in `fallback.py`), which suggests the boundary is genuinely ambiguous in the source data itself — tech-company articles are frequently written in financial language (earnings, stock moves, investment) even when the subject is a product or research finding, not the market.
+
+Raw per-sample results for the latest run are written to `eval_results.csv` (git-ignored — regenerated on every `evaluate` run, not committed).
+
 ## Getting started
 
 ### Requirements
